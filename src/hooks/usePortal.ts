@@ -24,6 +24,7 @@ export type Subject = {
   code: string;
   name: string;
   note: string | null;
+  assignment: string | null;
   updated_at: string;
 };
 
@@ -73,7 +74,7 @@ export function useSubjects() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("subjects")
-        .select("id, code, name, note, updated_at")
+        .select("id, code, name, note, assignment, updated_at")
         .order("code");
       if (error) throw error;
       return (data ?? []) as Subject[];
