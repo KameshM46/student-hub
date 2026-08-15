@@ -166,6 +166,7 @@ export type Database = {
       }
       subjects: {
         Row: {
+          assignment: string | null
           code: string
           created_at: string
           id: string
@@ -174,6 +175,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assignment?: string | null
           code: string
           created_at?: string
           id?: string
@@ -182,6 +184,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assignment?: string | null
           code?: string
           created_at?: string
           id?: string
