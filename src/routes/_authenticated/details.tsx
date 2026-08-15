@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/AppShell";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarPicker } from "@/components/AvatarPicker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -39,7 +39,6 @@ const fields = [
   { key: "blood_group", label: "Blood group" },
   { key: "guardian_name", label: "Guardian name" },
   { key: "guardian_phone", label: "Guardian phone" },
-  { key: "photo_url", label: "Profile picture URL" },
 ] as const;
 
 type FormState = Record<string, string>;
@@ -52,7 +51,10 @@ function DetailsPage() {
 
   useEffect(() => {
     if (!profile) return;
-    const next: FormState = { address: profile.address ?? "" };
+    const next: FormState = {
+      address: profile.address ?? "",
+      photo_url: profile.photo_url ?? "",
+    };
     for (const f of fields) next[f.key] = (profile[f.key] as string | null) ?? "";
     setForm(next);
   }, [profile]);
@@ -96,10 +98,11 @@ function DetailsPage() {
       <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
         <Card className="panel border-0 h-fit">
           <CardContent className="flex flex-col items-center gap-3 pt-6 text-center">
-            <Avatar className="size-24 border-2 border-primary/40">
-              {form["photo_url"] ? <AvatarImage src={form["photo_url"]} alt="Preview" /> : null}
-              <AvatarFallback className="bg-secondary text-xl">{initials}</AvatarFallback>
-            </Avatar>
+            <AvatarPicker
+              value={form["photo_url"] ?? ""}
+              initials={initials}
+              onChange={(dataUrl) => setForm((p) => ({ ...p, photo_url: dataUrl }))}
+            />
             <p className="text-sm font-medium">{form["full_name"] || profile?.full_name}</p>
             <p className="text-xs text-muted-foreground">Register No. {profile?.register_no}</p>
           </CardContent>
