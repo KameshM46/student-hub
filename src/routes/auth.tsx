@@ -56,33 +56,73 @@ function AuthPage() {
   }
 
   async function submit(event: React.FormEvent) {
-    event.preventDefault();
-    if (!identifier || !dob) {
-      toast.error("Fill in every field.");
-      return;
-    }
-    setBusy(true);
-    try {
-      if (mode === "signin") {
-        await signIn();
-      } else {
-        const result = await register({
-          data: { role, identifier, dob, fullName, adminCode },
-        });
-        if (!result.ok) {
-          toast.error(result.error);
-          return;
-        }
-        toast.success("Account created. Signing you in…");
-        await signIn();
-      }
-    } catch {
-      toast.error("Something went wrong. Please try again.");
-    } finally {
-      setBusy(false);
-    }
+  event.preventDefault();
+
+  if (!identifier || !dob) {
+    toast.error("Fill in every field.");
+    return;
   }
 
+  if (mode === "register" && !fullName) {
+    toast.error("Enter your full name.");
+    return;
+  }
+
+  if (mode === "register" && role === "admin" && !adminCode) {
+    toast.error("Enter the admin access code.");
+    return;
+  }
+
+  setBusy(true);
+
+  try {
+    if (mode === "signin") {
+      await signIn();
+      return;
+    }
+
+    console.log("Registering account...", {
+      role,
+      identifier,
+      dob,
+      fullName,
+      hasAdminCode: Boolean(adminCode),
+    });
+
+    const result = await register({
+      data: {
+        role,
+        identifier,
+        dob,
+        fullName,
+        adminCode,
+      },
+    });
+
+    console.log("registerAccount result:", result);
+
+    if (!result.ok) {
+      toast.error(result.error);
+      return;
+    }
+
+    toast.success("Account created. Signing you in…");
+    await signIn();
+  } catch (error) {
+    console.error("Registration/Login failed:", error);
+
+    const message =
+      error instanceof Error
+        ? error.message
+        : typeof error === "string"
+          ? error
+          : "Unknown server error";
+
+    toast.error(message);
+  } finally {
+    setBusy(false);
+  }
+}
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
