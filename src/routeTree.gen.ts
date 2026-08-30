@@ -17,6 +17,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDetailsRouteImport } from './routes/_authenticated/details'
 import { Route as AuthenticatedMarksRouteImport } from './routes/_authenticated/marks'
 import { Route as AuthenticatedSubjectsRouteImport } from './routes/_authenticated/subjects'
+import { Route as ApiPublicMongoExportRouteImport } from './routes/api/public/mongo-export'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -57,6 +58,11 @@ const AuthenticatedSubjectsRoute = AuthenticatedSubjectsRouteImport.update({
   path: '/subjects',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicMongoExportRoute = ApiPublicMongoExportRouteImport.update({
+  id: '/api/public/mongo-export',
+  path: '/api/public/mongo-export',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/details': typeof AuthenticatedDetailsRoute
   '/marks': typeof AuthenticatedMarksRoute
   '/subjects': typeof AuthenticatedSubjectsRoute
+  '/api/public/mongo-export': typeof ApiPublicMongoExportRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/details': typeof AuthenticatedDetailsRoute
   '/marks': typeof AuthenticatedMarksRoute
   '/subjects': typeof AuthenticatedSubjectsRoute
+  '/api/public/mongo-export': typeof ApiPublicMongoExportRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/_authenticated/details': typeof AuthenticatedDetailsRoute
   '/_authenticated/marks': typeof AuthenticatedMarksRoute
   '/_authenticated/subjects': typeof AuthenticatedSubjectsRoute
+  '/api/public/mongo-export': typeof ApiPublicMongoExportRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/details'
     | '/marks'
     | '/subjects'
+    | '/api/public/mongo-export'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/details'
     | '/marks'
     | '/subjects'
+    | '/api/public/mongo-export'
   id:
     | '__root__'
     | '/'
@@ -116,12 +127,14 @@ export interface FileRouteTypes {
     | '/_authenticated/details'
     | '/_authenticated/marks'
     | '/_authenticated/subjects'
+    | '/api/public/mongo-export'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicMongoExportRoute: typeof ApiPublicMongoExportRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -182,6 +195,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSubjectsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/mongo-export': {
+      id: '/api/public/mongo-export'
+      path: '/api/public/mongo-export'
+      fullPath: '/api/public/mongo-export'
+      preLoaderRoute: typeof ApiPublicMongoExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -208,6 +228,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicMongoExportRoute: ApiPublicMongoExportRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

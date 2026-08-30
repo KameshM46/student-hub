@@ -27,3 +27,20 @@ npm run dev
 - TypeScript
 - React
 - Tailwind CSS
+
+## MongoDB Atlas / Compass sync
+
+The app stores data in Lovable Cloud. To mirror it into MongoDB Atlas so you can
+browse it in Compass, run the sync from your own machine (MongoDB needs a raw TCP
+connection that the hosted runtime can't open):
+
+```bash
+npm install mongodb
+MONGODB_URI="<your Atlas connection string>" \
+PORTAL_URL="https://<your-app>.lovable.app" \
+MONGO_SYNC_TOKEN="<MONGO_SYNC_TOKEN from app secrets>" \
+node scripts/sync-to-mongo.mjs
+```
+
+It upserts `students`, `subjects`, `attendance` and `marks` into the
+`campus_portal` database. Re-run it (or schedule it) to refresh.
