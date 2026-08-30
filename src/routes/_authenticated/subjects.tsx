@@ -11,7 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { addSubject as addSubjectFn, updateSubject } from "@/lib/data.functions";
 import {
   useAttendance,
   useMe,
@@ -48,12 +49,11 @@ function SubjectsPage() {
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
 
+  const addSubjectServerFn = useServerFn(addSubjectFn);
+
   const addSubject = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("subjects")
-        .insert({ code: code.trim().toUpperCase(), name: name.trim() });
-      if (error) throw error;
+      await addSubjectServerFn({ data: { code: code.trim(), name: name.trim() } });
     },
     onSuccess: () => {
       toast.success("Subject added.");
@@ -140,13 +140,13 @@ function SubjectCard({
   const present = attendance.filter((a) => a.status === "present").length;
   const absent = attendance.length - present;
 
+  const updateSubjectFn = useServerFn(updateSubject);
+
   const save = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("subjects")
-        .update({ note: note || null, assignment: assignment || null })
-        .eq("id", subject.id);
-      if (error) throw error;
+      await updateSubjectFn({
+        data: { id: subject.id, note: note || null, assignment: assignment || null },
+      });
     },
     onSuccess: () => {
       toast.success("Published to all students.");

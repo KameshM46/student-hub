@@ -10,7 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { updateProfile } from "@/lib/data.functions";
 import { useMe } from "@/hooks/usePortal";
 
 export const Route = createFileRoute("/_authenticated/details")({
@@ -48,6 +49,7 @@ function DetailsPage() {
   const profile = me?.profile;
   const queryClient = useQueryClient();
   const [form, setForm] = useState<FormState>({});
+  const updateProfileFn = useServerFn(updateProfile);
 
   useEffect(() => {
     if (!profile) return;
@@ -75,8 +77,7 @@ function DetailsPage() {
         photo_url: form["photo_url"] || null,
         address: form["address"] || null,
       };
-      const { error } = await supabase.from("profiles").update(payload).eq("id", profile!.id);
-      if (error) throw error;
+      await updateProfileFn({ data: payload });
     },
     onSuccess: () => {
       toast.success("Details saved.");

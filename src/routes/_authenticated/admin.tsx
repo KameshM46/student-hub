@@ -16,7 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { addAttendance, addMark as addMarkFn } from "@/lib/data.functions";
 import { useAttendance, useMarks, useMe, useStudents, useSubjects } from "@/hooks/usePortal";
 import { percent } from "@/lib/portal";
 
@@ -53,15 +54,14 @@ function AdminPage() {
   const { data: attendance = [] } = useAttendance(studentId || undefined);
   const { data: marks = [] } = useMarks(studentId || undefined);
 
+  const addAttendanceFn = useServerFn(addAttendance);
+  const addMarkServerFn = useServerFn(addMarkFn);
+
   const markAttendance = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("attendance").insert({
-        student_id: studentId,
-        subject_id: subjectId || null,
-        date,
-        status,
+      await addAttendanceFn({
+        data: { studentId, subjectId: subjectId || null, date, status: status as "present" | "absent" },
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Attendance recorded.");
@@ -74,16 +74,16 @@ function AdminPage() {
     mutationFn: async () => {
       const subject = subjects.find((s) => s.id === subjectId);
       if (!subject) throw new Error("Choose a subject first");
-      const { error } = await supabase.from("marks").insert({
-        student_id: studentId,
-        subject_id: subject.id,
-        subject_name: `${subject.code} · ${subject.name}`,
-        exam_name: examName,
-        marks_obtained: Number(obtained),
-        max_marks: Number(max),
-        added_by: me?.user?.id ?? null,
+      await addMarkServerFn({
+        data: {
+          studentId,
+          subjectId: subject.id,
+          subjectName: `${subject.code} · ${subject.name}`,
+          examName,
+          marksObtained: Number(obtained),
+          maxMarks: Number(max),
+        },
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Marks saved.");

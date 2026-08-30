@@ -25,7 +25,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { addMark as addMarkFn, deleteMark } from "@/lib/data.functions";
 import { useMarks, useMe, useSubjects } from "@/hooks/usePortal";
 
 export const Route = createFileRoute("/_authenticated/marks")({
@@ -55,20 +56,23 @@ function MarksPage() {
   const [obtained, setObtained] = useState("");
   const [max, setMax] = useState("100");
 
+  const addMarkServerFn = useServerFn(addMarkFn);
+  const deleteMarkFn = useServerFn(deleteMark);
+
   const addMark = useMutation({
     mutationFn: async () => {
       const subject = subjects.find((s) => s.id === subjectId);
       if (!subject) throw new Error("Choose a subject");
-      const { error } = await supabase.from("marks").insert({
-        student_id: studentId!,
-        subject_id: subject.id,
-        subject_name: `${subject.code} · ${subject.name}`,
-        exam_name: examName,
-        marks_obtained: Number(obtained),
-        max_marks: Number(max),
-        added_by: studentId!,
+      await addMarkServerFn({
+        data: {
+          studentId: studentId!,
+          subjectId: subject.id,
+          subjectName: `${subject.code} · ${subject.name}`,
+          examName,
+          marksObtained: Number(obtained),
+          maxMarks: Number(max),
+        },
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Marks added.");
@@ -80,8 +84,7 @@ function MarksPage() {
 
   const removeMark = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("marks").delete().eq("id", id);
-      if (error) throw error;
+      await deleteMarkFn({ data: { id } });
     },
     onSuccess: () => {
       toast.success("Entry removed.");

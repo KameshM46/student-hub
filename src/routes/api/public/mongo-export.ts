@@ -1,56 +1,115 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getDb } from "../../../lib/mongo.server";
 
 /**
  * Token-protected snapshot of the portal data, shaped as MongoDB collections.
- * A local sync script (scripts/sync-to-mongo.mjs) pulls this and upserts the
- * documents into MongoDB Atlas so everything is browsable in Compass.
+ *
+ * This endpoint now reads directly from MongoDB Atlas.
+ * Supabase is no longer required.
  */
 export const Route = createFileRoute("/api/public/mongo-export")({
   server: {
     handlers: {
       GET: async ({ request }) => {
         const token = process.env["MONGO_SYNC_TOKEN"];
-        const provided =
-          request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
 
-        if (!token || provided.length !== token.length || provided !== token) {
+        const provided =
+          request.headers
+            .get("authorization")
+            ?.replace(/^Bearer\s+/i, "") ?? "";
+
+        if (
+          !token ||
+          provided.length !== token.length ||
+          provided !== token
+        ) {
           return new Response("Unauthorized", { status: 401 });
         }
 
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        try {
+          const db = await getDb();
 
-        const [students, subjects, attendance, marks, roles] = await Promise.all([
-          supabaseAdmin.from("profiles").select("*").order("register_no"),
-          supabaseAdmin.from("subjects").select("*").order("code"),
-          supabaseAdmin.from("attendance").select("*").order("date"),
-          supabaseAdmin.from("marks").select("*").order("created_at"),
-          supabaseAdmin.from("user_roles").select("user_id, role"),
-        ]);
+          const [students, subjects, attendance, marks] =
+            await Promise.all([
+              db
+                .collection("users")
+                .find({ role: "student" })
+                .sort({ register_no: 1 })
+                .toArray(),
 
-        const failed = [students, subjects, attendance, marks, roles].find((r) => r.error);
-        if (failed?.error) {
-          return new Response(`Export failed: ${failed.error.message}`, { status: 500 });
-        }
+              db
+                .collection("subjects")
+                .find()
+                .sort({ code: 1 })
+                .toArray(),
 
-        const roleByUser = new Map(
-          (roles.data ?? []).map((r) => [r.user_id as string, r.role as string]),
-        );
+              db
+                .collection("attendance")
+                .find()
+                .sort({ date: 1 })
+                .toArray(),
 
-        return Response.json(
-          {
-            exported_at: new Date().toISOString(),
-            collections: {
-              students: (students.data ?? []).map((s) => ({
-                ...s,
-                account_type: roleByUser.get(s.id as string) ?? "student",
-              })),
-              subjects: subjects.data ?? [],
-              attendance: attendance.data ?? [],
-              marks: marks.data ?? [],
+              db
+                .collection("marks")
+                .find()
+                .sort({ created_at: 1 })
+                .toArray(),
+            ]);
+
+          const serialize = (doc: Record<string, any>) => {
+            const { _id, ...rest } = doc;
+
+            return {
+              id: _id?.toString(),
+              ...rest,
+            };
+          };
+
+          const studentData = students.map((student) => ({
+            ...serialize(student),
+            account_type: "student",
+          }));
+
+          const subjectData = subjects.map(serialize);
+          const attendanceData = attendance.map(serialize);
+          const marksData = marks.map(serialize);
+
+          const rolesData = students.map((student) => ({
+            user_id: student._id.toString(),
+            role: student.role ?? "student",
+          }));
+
+          return Response.json(
+            {
+              exported_at: new Date().toISOString(),
+
+              collections: {
+                students: studentData,
+                subjects: subjectData,
+                attendance: attendanceData,
+                marks: marksData,
+                roles: rolesData,
+              },
             },
-          },
-          { headers: { "cache-control": "no-store" } },
-        );
+            {
+              headers: {
+                "cache-control": "no-store",
+              },
+            },
+          );
+        } catch (error) {
+          console.error("MongoDB export failed:", error);
+
+          const message =
+            error instanceof Error
+              ? error.message
+              : "Unknown MongoDB error";
+
+          return new Response(
+            `Export failed: ${message}`,
+            { status: 500 },
+          );
+        }
       },
     },
   },

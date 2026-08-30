@@ -6,7 +6,8 @@ import type { ReactNode } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { logoutAccount } from "@/lib/portal.functions";
 import { useMe } from "@/hooks/usePortal";
 
 const navItems = [
@@ -28,6 +29,7 @@ export function AppShell({
   const { data } = useMe();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const logout = useServerFn(logoutAccount);
 
   const initials = (data?.profile?.full_name ?? "??")
     .split(" ")
@@ -39,7 +41,7 @@ export function AppShell({
   async function signOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
-    await supabase.auth.signOut();
+    await logout();
     navigate({ to: "/auth", replace: true });
   }
 

@@ -9,9 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
-import { registerAccount } from "@/lib/portal.functions";
-import { dobPassword, loginEmail, type PortalRole } from "@/lib/portal";
+import { loginAccount, registerAccount } from "@/lib/portal.functions";
+import type { PortalRole } from "@/lib/portal";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -43,14 +42,12 @@ function AuthPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const register = useServerFn(registerAccount);
+  const login = useServerFn(loginAccount);
 
   async function signIn() {
-    const { error } = await supabase.auth.signInWithPassword({
-      email: loginEmail(role, identifier),
-      password: dobPassword(dob),
-    });
-    if (error) {
-      toast.error("Number or date of birth is incorrect.");
+    const result = await login({ data: { role, identifier, dob } });
+    if (!result.ok) {
+      toast.error(result.error);
       return;
     }
     await queryClient.invalidateQueries();

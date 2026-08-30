@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 
-import { supabase } from "@/integrations/supabase/client";
+import { listAttendance, listMarks, listStudents, listSubjects } from "@/lib/data.functions";
+import { getMe } from "@/lib/portal.functions";
 
 export type Profile = {
   id: string;
@@ -47,84 +49,44 @@ export type MarkRow = {
 };
 
 export function useMe() {
+  const getMeFn = useServerFn(getMe);
   return useQuery({
     queryKey: ["me"],
-    queryFn: async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData.user;
-      if (!user) return { user: null, profile: null, isAdmin: false };
-
-      const [{ data: profile }, { data: roles }] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
-        supabase.from("user_roles").select("role").eq("user_id", user.id),
-      ]);
-
-      return {
-        user,
-        profile: (profile as Profile | null) ?? null,
-        isAdmin: (roles ?? []).some((r) => r.role === "admin"),
-      };
-    },
+    queryFn: () => getMeFn(),
   });
 }
 
 export function useSubjects() {
+  const listSubjectsFn = useServerFn(listSubjects);
   return useQuery({
     queryKey: ["subjects"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("subjects")
-        .select("id, code, name, note, assignment, updated_at")
-        .order("code");
-      if (error) throw error;
-      return (data ?? []) as Subject[];
-    },
+    queryFn: () => listSubjectsFn(),
   });
 }
 
 export function useStudents(enabled: boolean) {
+  const listStudentsFn = useServerFn(listStudents);
   return useQuery({
     enabled,
     queryKey: ["students"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .order("register_no");
-      if (error) throw error;
-      return (data ?? []) as Profile[];
-    },
+    queryFn: () => listStudentsFn(),
   });
 }
 
 export function useAttendance(studentId: string | undefined) {
+  const listAttendanceFn = useServerFn(listAttendance);
   return useQuery({
     enabled: Boolean(studentId),
     queryKey: ["attendance", studentId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("attendance")
-        .select("id, date, status, subject_id, student_id")
-        .eq("student_id", studentId!)
-        .order("date", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as AttendanceRow[];
-    },
+    queryFn: () => listAttendanceFn({ data: { studentId: studentId! } }),
   });
 }
 
 export function useMarks(studentId: string | undefined) {
+  const listMarksFn = useServerFn(listMarks);
   return useQuery({
     enabled: Boolean(studentId),
     queryKey: ["marks", studentId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("marks")
-        .select("id, student_id, subject_id, subject_name, exam_name, marks_obtained, max_marks")
-        .eq("student_id", studentId!)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as MarkRow[];
-    },
+    queryFn: () => listMarksFn({ data: { studentId: studentId! } }),
   });
 }
