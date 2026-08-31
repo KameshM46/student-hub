@@ -27,6 +27,7 @@ export type Subject = {
   name: string;
   note: string | null;
   assignment: string | null;
+  assignment_file: { name: string; dataUrl: string } | null;
   updated_at: string;
 };
 

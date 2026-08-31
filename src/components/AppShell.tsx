@@ -15,6 +15,7 @@ const navItems = [
   { to: "/marks", label: "Marks" },
   { to: "/details", label: "My details" },
   { to: "/subjects", label: "Subjects" },
+  { to: "/amcat", label: "AMCAT"},
 ] as const;
 
 export function AppShell({

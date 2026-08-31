@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAmcatRouteImport } from './routes/_authenticated/amcat'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDetailsRouteImport } from './routes/_authenticated/details'
 import { Route as AuthenticatedMarksRouteImport } from './routes/_authenticated/marks'
@@ -36,6 +37,11 @@ const AuthRoute = AuthRouteImport.update({
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAmcatRoute = AuthenticatedAmcatRouteImport.update({
+  id: '/amcat',
+  path: '/amcat',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/amcat': typeof AuthenticatedAmcatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/details': typeof AuthenticatedDetailsRoute
   '/marks': typeof AuthenticatedMarksRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/amcat': typeof AuthenticatedAmcatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/details': typeof AuthenticatedDetailsRoute
   '/marks': typeof AuthenticatedMarksRoute
@@ -90,6 +98,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/amcat': typeof AuthenticatedAmcatRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/details': typeof AuthenticatedDetailsRoute
   '/_authenticated/marks': typeof AuthenticatedMarksRoute
@@ -102,6 +111,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/admin'
+    | '/amcat'
     | '/dashboard'
     | '/details'
     | '/marks'
@@ -112,6 +122,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/admin'
+    | '/amcat'
     | '/dashboard'
     | '/details'
     | '/marks'
@@ -123,6 +134,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/admin'
+    | '/_authenticated/amcat'
     | '/_authenticated/dashboard'
     | '/_authenticated/details'
     | '/_authenticated/marks'
@@ -167,6 +179,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/amcat': {
+      id: '/_authenticated/amcat'
+      path: '/amcat'
+      fullPath: '/amcat'
+      preLoaderRoute: typeof AuthenticatedAmcatRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -207,6 +226,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAmcatRoute: typeof AuthenticatedAmcatRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDetailsRoute: typeof AuthenticatedDetailsRoute
   AuthenticatedMarksRoute: typeof AuthenticatedMarksRoute
@@ -215,6 +235,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAmcatRoute: AuthenticatedAmcatRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDetailsRoute: AuthenticatedDetailsRoute,
   AuthenticatedMarksRoute: AuthenticatedMarksRoute,
